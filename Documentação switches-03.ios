@@ -1,0 +1,200 @@
+enable 
+    configure terminal
+        interface vlan 10
+            description interface SVI Switch 2960 
+            ip address 192.168.10.250/251 255.255.255.0
+            no shutdown
+            end 
+    write 
+    show ip interface brief 
+    ping 192.168.10.252        
+
+--------------------------------------------------------------------------
+!switch 2960 (acesso ao lado esquerdo)
+enable
+    cofigure terminal
+        interface range GigabiteEthernet 0/1 - 2
+            switchport mode trunk
+            switchport nonegotiate 
+            do write
+        exit
+        
+     interface range fastEthernet 0/23 - 24
+        switchport mode trunk 
+        switchport nonegotiate
+        do write 
+        end
+write 
+--------------------------------------------------------------------------
+!switch Multilayer 3650
+enable
+    configure terminal
+    interface range GigabiteEthernet 1/0/1 - 4
+        description interface de Trunk 
+        switchport mode trunk
+        switchport nonegotiate
+        end
+write 
+
+show running-config
+show interfaces trunk 
+--------------------------------------------------------------------------
+!switch 2960 (acesso ao lado esquerdo)
+enable 
+    configure terminal
+        interface FastEthernet 0/1
+            description VLAN 40 Estoque 
+            switchport mode access 
+            switchport access vlan 40
+            switchport nonegotiate
+            exit 
+    do write 
+
+enable 
+    configure terminal
+        interface FastEthernet 0/2
+            description VLAN 50 Estoque 
+            switchport mode access 
+            switchport access vlan 50
+            switchport nonegotiate
+            exit 
+    do write 
+        interface FastEthernet 0/3
+            description VLAN 60 Estoque 
+            switchport mode access 
+            switchport access vlan 60
+            switchport nonegotiate
+            exit 
+        interface range fastEthernet 0/4 - 22
+            description No-Arthut 
+            shutdown
+        end
+
+    do write 
+
+
+    exit 
+---------------------------------------------------------------------------
+enable
+   show ip interface brief 
+    ping 192.168.10.252
+    ping 192.168.10.250 
+    ping 192.168.10.251 
+    configure terminal
+        interface range GigabitEthernet 1/0/10 - 12
+            description Interfaces de Servidores
+            switchport mode access 
+            switchport nonegotiate 
+            switchport access vlan 20 
+            exit 
+        
+         interface GigabitEthernet 1/0/23 
+            description Interfaces de Servidores
+            switchport mode access 
+            switchport nonegotiate 
+            switchport access vlan 30
+            exit 
+---------------------------------------------------------------------------
+!Configuração do Switch 3650 (Distribuição)
+emable 
+    configure terminal
+        interface range GigabiteEthernet 1/0/1 - 2
+            channel-group 1 mode active
+            exit 
+
+        interface Port-Channel 1 
+            description LACP Switch 3650 para 2960 
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+write
+
+!Switch 2960 para o 3650 (esquerdo)
+enable
+    configure terminal
+        interface range GigabitEthernet 0/1 - 2 
+            channel-group 1 mode passive 
+            exit 
+        interface Port-channel 1  
+            description LACP switch 2960 paea 3650 
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+write  
+
+!Switch 3650 para o 2960 (direito)  
+enable
+    configure terminal
+        interface range GigabitEthernet 1/0/3 - 4
+            channel-group 2 mode active 
+            exit 
+        interface Port-channel 2 
+            description LACP switch 3650 para 2960 
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+write 
+
+!Switch 2960 para o 3650 (direito)
+enable
+    configure terminal
+        interface range GigabitEthernet 0/1 - 2
+            channel-group 2 mode passive 
+            exit 
+        interface Port-channel 2 
+            description LACP switch 2960 para 3650
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+write 
+
+!Switch esquerdo pro direito 
+enable
+    configure terminal
+        interface range FastEthernet 0/23 - 24
+            channel-group 3 mode passive  
+            exit 
+        interface Port-channel 3 
+            description LACP switch 2960 para 2960 
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+write  
+
+!Switch direito pro esquerdo 
+enable
+    configure terminal
+        interface range FastEthernet 0/23 - 24
+            channel-group 3 mode active 
+            exit 
+        interface Port-channel 3 
+            description LACP switch 2960 para 2960 
+            switchport mode trunk 
+            switchport trunk allowed vlan all 
+            end 
+---------------------------------------------------------------------------
+!configuraçaõ Switch 3650
+enable 
+    configure terminal 
+        spanning-tree vlan 1-60 root primary 
+        spanning-tree mode rapid-pvst 
+        end
+write 
+
+!configuração Switch 2960 
+enable 
+    configure terminal
+        spanning-tree mode rapid-pvst 
+        end
+write 
+
+
+
+
+
+
+
+
+!Para ver se ta tudo certo 
+show etherchannel summary 
+show running-config 
